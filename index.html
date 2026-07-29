@@ -33,9 +33,9 @@
       border-radius: 12px;
       overflow: hidden;
       margin-bottom: 20px;
-      background: #000;
+      background: #0f172a;
+      padding: 15px;
     }
-    iframe { width: 100%; height: 200px; border: none; }
     
     input[type="text"], textarea {
       width: 100%;
@@ -67,13 +67,14 @@
     <h1>📻 תחנת הרדיו שלי</h1>
     <p>מאזינים בלייב לשידור החי</p>
 
-    <!-- נגן הווידאו/אודיו מ-YouTube Live -->
+    <!-- נגן הרדיו מ-Caster.fm -->
     <div class="stream-container">
-      <iframe 
-        src="https://www.youtube.com/embed/live_stream?channel=YOUR_CHANNEL_ID" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-      </iframe>
+      <div class="cstremBed" data-type="newStreamPlayer" data-publicToken="8eddf37e-02c2-4944-b421-1a06b06503b4" data-theme="light" data-color="6C2BDD" data-channelId="" data-rendered="false">
+        <a href="https://www.caster.fm">Shoutcast Hosting</a>
+        <a href="https://www.caster.fm">Stream Hosting</a>
+        <a href="https://www.caster.fm">Radio Server Hosting</a>
+      </div>
+      <script src="//cdn.cloud.caster.fm/widgets/embed.js"></script>
     </div>
 
     <hr style="border-color: #1f2937; margin: 20px 0;">
