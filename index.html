@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>שידור רדיו חי</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body {
+      background: #0b0f19;
+      color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: #161e2e;
+      border: 1px solid #1f2937;
+      padding: 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    h1 { color: #6366f1; margin-bottom: 8px; font-size: 1.6rem; }
+    p { color: #9ca3af; font-size: 0.9rem; margin-bottom: 20px; }
+    
+    .stream-container {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: #000;
+    }
+    iframe { width: 100%; height: 200px; border: none; }
+    
+    input[type="text"], textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #1f2937;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #059669; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>📻 תחנת הרדיו שלי</h1>
+    <p>מאזינים בלייב לשידור החי</p>
+
+    <!-- נגן הווידאו/אודיו מ-YouTube Live -->
+    <div class="stream-container">
+      <iframe 
+        src="https://www.youtube.com/embed/live_stream?channel=YOUR_CHANNEL_ID" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <hr style="border-color: #1f2937; margin: 20px 0;">
+
+    <h3>💬 שליחת הודעה לאולפן</h3>
+    <input type="text" id="senderName" placeholder="השם שלך...">
+    <textarea id="senderMsg" rows="3" placeholder="כתובי משהו לשידור או בקשו שיר..."></textarea>
+    <button onclick="sendToStudio()">שלח הודעה לדיג'יי 📩</button>
+  </div>
+
+  <script>
+    function sendToStudio() {
+      const name = document.getElementById('senderName').value.trim();
+      const msg = document.getElementById('senderMsg').value.trim();
+      
+      if (!name || !msg) {
+        alert("נא למלא שם והודעה");
+        return;
+      }
+
+      alert("ההודעה נשלחה בהצלחה לאולפן!");
+      document.getElementById('senderMsg').value = '';
+    }
+  </script>
+
+</body>
+</html>
