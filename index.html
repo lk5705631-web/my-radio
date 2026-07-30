@@ -3,100 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>שידור רדיו חי</title>
+  <title>שידור רדיו חי - דף מאזינים</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #10b981;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
     body {
-      background: #0b0f19;
-      color: #f3f4f6;
+      background-color: var(--bg-dark);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      margin: 0;
       padding: 20px;
     }
-    .card {
-      background: #161e2e;
-      border: 1px solid #1f2937;
+    .player-card {
+      background: var(--card-bg);
+      border-radius: 16px;
       padding: 30px;
-      border-radius: 20px;
       width: 100%;
       max-width: 450px;
-      text-align: center;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      text-align: center;
     }
-    h1 { color: #6366f1; margin-bottom: 8px; font-size: 1.6rem; }
-    p { color: #9ca3af; font-size: 0.9rem; margin-bottom: 20px; }
+    h1 { margin-bottom: 5px; color: #60a5fa; }
+    p.subtitle { color: var(--text-dim); margin-bottom: 25px; font-size: 0.9em; }
     
-    .stream-container {
+    /* נגן אודיו */
+    audio {
       width: 100%;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      background: #0f172a;
-      padding: 15px;
-    }
-    
-    input[type="text"], textarea {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid #1f2937;
-      color: white;
-      padding: 12px;
+      margin-bottom: 25px;
       border-radius: 8px;
-      margin-bottom: 10px;
-      outline: none;
     }
-    button {
+    
+    /* טופס הודעות */
+    .msg-section {
+      border-top: 1px solid #334155;
+      padding-top: 20px;
+      text-align: right;
+    }
+    .msg-section h3 {
+      text-align: center;
+      margin-top: 0;
+      color: var(--text);
+    }
+    input, textarea {
       width: 100%;
-      background: #10b981;
-      color: white;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #fff;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+    button.send-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
       border: none;
-      padding: 12px;
       border-radius: 8px;
+      color: white;
       font-weight: bold;
+      font-size: 1em;
       cursor: pointer;
-      transition: 0.2s;
+      transition: background 0.2s;
     }
-    button:hover { background: #059669; }
+    button.send-btn:hover { background: #059669; }
+    .status-msg {
+      margin-top: 10px;
+      font-size: 0.85em;
+      text-align: center;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <div class="card">
+  <div class="player-card">
     <h1>📻 תחנת הרדיו שלי</h1>
-    <p>מאזינים בלייב לשידור החי</p>
+    <p class="subtitle">מאזינים בלייב לשידור החי</p>
 
-    <!-- נגן הרדיו מ-Caster.fm -->
-    <div class="stream-container">
-      <div class="cstremBed" data-type="newStreamPlayer" data-publicToken="8eddf37e-02c2-4944-b421-1a06b06503b4" data-theme="light" data-color="6C2BDD" data-channelId="" data-rendered="false">
-        <a href="https://www.caster.fm">Shoutcast Hosting</a>
-        <a href="https://www.caster.fm">Stream Hosting</a>
-        <a href="https://www.caster.fm">Radio Server Hosting</a>
-      </div>
-      <script src="//cdn.cloud.caster.fm/widgets/embed.js"></script>
+    <!-- נגן האודיו שמחובר לשרת השידור -->
+    <audio controls autoplay preload="none">
+      <audio src="http://sapircast.caster.fm:13652/Drgtd" type="audio/mpeg"></audio>
+      הדפדפן שלך אינו תומך בנגן השמע.
+    </audio>
+
+    <!-- טופס שליחת הודעות לאולפן -->
+    <div class="msg-section">
+      <h3>💬 שליחת הודעה לאולפן</h3>
+      <input type="text" id="senderName" placeholder="השם שלך..." required>
+      <textarea id="senderMsg" rows="3" placeholder="כתובי משהו לשידור או בקשו שיר..." required></textarea>
+      <button class="send-btn" onclick="sendMessage()">שלח הודעה לדיג'יי 📩</button>
+      <div id="statusMsg" class="status-msg"></div>
     </div>
-
-    <hr style="border-color: #1f2937; margin: 20px 0;">
-
-    <h3>💬 שליחת הודעה לאולפן</h3>
-    <input type="text" id="senderName" placeholder="השם שלך...">
-    <textarea id="senderMsg" rows="3" placeholder="כתובי משהו לשידור או בקשו שיר..."></textarea>
-    <button onclick="sendToStudio()">שלח הודעה לדיג'יי 📩</button>
   </div>
 
   <script>
-    function sendToStudio() {
+    function sendMessage() {
       const name = document.getElementById('senderName').value.trim();
       const msg = document.getElementById('senderMsg').value.trim();
-      
+      const status = document.getElementById('statusMsg');
+
       if (!name || !msg) {
-        alert("נא למלא שם והודעה");
+        alert("אנא למלא שם והודעה");
         return;
       }
 
-      alert("ההודעה נשלחה בהצלחה לאולפן!");
+      // שמירת ההודעה עבור האולפן
+      const newMessage = {
+        name: name,
+        text: msg,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      let messages = JSON.parse(localStorage.getItem('radio_messages') || '[]');
+      messages.unshift(newMessage);
+      localStorage.setItem('radio_messages', JSON.stringify(messages));
+
+      status.style.display = 'block';
+      status.style.color = '#10b981';
+      status.innerText = "ההודעה נשלחה בהצלחה לאולפן! 🚀";
+
+      document.getElementById('senderName').value = '';
       document.getElementById('senderMsg').value = '';
+
+      setTimeout(() => { status.style.display = 'none'; }, 4000);
     }
   </script>
 
