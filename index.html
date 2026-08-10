@@ -3,256 +3,142 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radio DJ Studio - אולפן שידור</title>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <title>רדיו בלייב - עלה לשידור</title>
+  <!-- טעינת ספריית PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
-    :root {
-      --bg-dark: #0f172a;
-      --card-bg: #1e293b;
-      --accent: #3b82f6;
-      --accent-live: #22c55e;
-      --danger: #ef4444;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
-    }
     body {
-      background-color: var(--bg-dark);
-      color: var(--text);
+      background-color: #0f172a;
+      color: #f8fafc;
       font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      background: var(--card-bg);
-      padding: 15px 25px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      min-height: 100vh;
+      margin: 0;
     }
-    .status-badge {
-      background: #475569;
-      padding: 6px 14px;
-      border-radius: 20px;
+    .container {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 1px solid #334155;
+    }
+    h1 { color: #60a5fa; margin-top: 0; }
+    p { color: #94a3b8; line-height: 1.5; }
+    .call-btn {
+      background: #22c55e;
+      color: white;
+      border: none;
+      padding: 16px 28px;
+      font-size: 1.1em;
       font-weight: bold;
-      font-size: 0.9em;
+      border-radius: 50px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     }
-    .status-badge.on-air { background: var(--accent-live); }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; }
-    h2 { margin-top: 0; color: #60a5fa; font-size: 1.2em; }
-    button {
-      background: var(--accent); color: white; border: none; padding: 10px 16px;
-      border-radius: 8px; cursor: pointer; font-weight: bold;
+    .call-btn:hover { background: #16a34a; transform: translateY(-2px); }
+    .call-btn:disabled { background: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
+    .hangup-btn {
+      background: #ef4444;
+      display: none;
+      margin-top: 10px;
     }
-    .fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .fx-btn { background: #334155; padding: 12px; text-align: center; }
-    textarea { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; box-sizing: border-box; }
-    .msg-list { list-style: none; padding: 0; margin: 0; max-height: 180px; overflow-y: auto; }
-    .msg-item { background: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-right: 3px solid var(--accent); }
-    .call-item { background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 3px solid #eab308; }
+    .hangup-btn:hover { background: #dc2626; }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <div>
-      <h1 style="margin:0; font-size: 1.5em;">📻 Radio DJ Studio - אולפן שידור</h1>
-      <small style="color: var(--text-dim);">ניהול שידור, אפקטים, שיחות מאזינים בלייב</small>
-    </div>
-    
-    <!-- בקרת הפעלת שידור עליונה -->
-    <div style="display: flex; gap: 15px; align-items: center;">
-      <div id="clock" style="font-size: 1.2em; font-weight: bold;">00:00:00</div>
-      <div id="airStatus" class="status-badge">OFF AIR 🔴</div>
-      <button id="toggleStreamBtn" onclick="toggleMainStream()" style="background: var(--danger); padding: 10px 18px; font-size: 1em;">
-        ▶️ הפעל שידור
-      </button>
-    </div>
-  </header>
+  <div class="container">
+    <h1>📻 עלייה לשידור חי</h1>
+    <p>רוצה לדבר בשידור? לחץ על הכפתור למטה, אשר את המיקרופון ותתחבר מיד לאולפן!</p>
 
-  <audio id="remoteAudio" autoplay></audio>
+    <button id="callBtn" class="call-btn" onclick="startLiveCall()">
+      📞 לחץ כאן כדי לדבר בשידור
+    </button>
 
-  <div class="grid">
-    
-    <!-- מרכזיית מאזינים -->
-    <div class="card" style="border: 2px solid #3b82f6;">
-      <h2>📞 מרכזיית מאזינים בלייב</h2>
-      <div id="callRequestsList">
-        <div style="color: var(--text-dim);">ממתין למאזינים שמבקשים לעלות...</div>
-      </div>
-    </div>
+    <button id="hangupBtn" class="call-btn hangup-btn" onclick="endCall()">
+      🔴 נתק שיחה
+    </button>
 
-    <!-- בקרת מיקרופון -->
-    <div class="card">
-      <h2>🎙️ מיקרופון שדרן</h2>
-      <button id="micBtn" onclick="toggleMicrophone()" style="width: 100%; padding: 15px; margin-bottom: 10px;">🎙️ דבר (מיקרופון כבוי)</button>
-      <label><input type="checkbox" id="duckingToggle" checked> הנמכה אוטומטית בדיבור</label>
-    </div>
-
-    <!-- קריין AI -->
-    <div class="card">
-      <h2>🎙️ קריין AI</h2>
-      <textarea id="aiText" rows="2" placeholder="טקסט לקריין..."></textarea>
-      <button onclick="speakAI()" style="width: 100%; background: #10b981; margin-top: 8px;">🎙️ שדר כעת</button>
-    </div>
-
-    <!-- אפקטים -->
-    <div class="card">
-      <h2>👏 אפקטים</h2>
-      <div class="fx-grid">
-        <button class="fx-btn" onclick="playSound('applause')">👏 כפיים</button>
-        <button class="fx-btn" onclick="playSound('jingle')">🎷 ג'ינגל</button>
-        <button class="fx-btn" onclick="playSound('laugh')">😄 צחוק</button>
-        <button class="fx-btn" onclick="playSound('siren')">📢 צפירה</button>
-      </div>
-    </div>
-
-    <!-- לוח הודעות -->
-    <div class="card" style="grid-column: span 2;">
-      <h2>💬 הודעות מאזינים</h2>
-      <ul id="msgList" class="msg-list"></ul>
-    </div>
-
+    <div id="status"></div>
   </div>
 
   <script>
-    // שעון
-    setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
+    const STUDIO_PEER_ID = 'radio-shimon-live-studio';
+    let currentCall = null;
+    let localStream = null;
 
-    // הפעלה/כיבוי שידור ראשי
-    let isLive = false;
-    function toggleMainStream() {
-      isLive = !isLive;
-      const statusBadge = document.getElementById('airStatus');
-      const mainBtn = document.getElementById('toggleStreamBtn');
+    async function startLiveCall() {
+      const statusDiv = document.getElementById('status');
+      const callBtn = document.getElementById('callBtn');
+      const hangupBtn = document.getElementById('hangupBtn');
 
-      if (isLive) {
-        statusBadge.innerText = "ON AIR 🟢";
-        statusBadge.classList.add("on-air");
-        mainBtn.innerText = "⏹️ עצור שידור";
-        mainBtn.style.background = "#16a34a";
-      } else {
-        statusBadge.innerText = "OFF AIR 🔴";
-        statusBadge.classList.remove("on-air");
-        mainBtn.innerText = "▶️ הפעל שידור";
-        mainBtn.style.background = "#dc2626";
-      }
-    }
+      statusDiv.innerHTML = '<span style="color: #eab308;">מבקש גישה למיקרופון...</span>';
 
-    // מיקרופון
-    let isMicOn = false;
-    let micStream = null;
-    async function toggleMicrophone() {
-      const micBtn = document.getElementById('micBtn');
-      if (!isMicOn) {
-        try {
-          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          isMicOn = true;
-          micBtn.innerText = "🎙️ מדבר כעת! (לחץ לכיבוי)";
-          micBtn.style.background = "#ef4444";
-        } catch (err) { alert("אין הרשאת מיקרופון"); }
-      } else {
-        if (micStream) micStream.getTracks().forEach(track => track.stop());
-        isMicOn = false;
-        micBtn.innerText = "🎙️ דבר (מיקרופון כבוי)";
-        micBtn.style.background = "#3b82f6";
-      }
-    }
+      try {
+        // 1. בקשת הרשאה למיקרופון
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
 
-    // PeerJS מרכזיה
-    const STUDIO_PEER_ID = 'radio_studio_live_room_123';
-    const peer = new Peer(STUDIO_PEER_ID);
-    let activeCall = null;
+        statusDiv.innerHTML = '<span style="color: #eab308;">מחייג לאולפן...</span>';
+        callBtn.disabled = true;
 
-    peer.on('call', (call) => {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        call.answer(stream);
-        activeCall = call;
-        call.on('stream', (remoteStream) => {
-          const remoteAudio = document.getElementById('remoteAudio');
-          remoteAudio.srcObject = remoteStream;
-          remoteAudio.play();
+        // 2. יצירת חיבור Peer למאזין
+        const listenerPeer = new Peer();
+
+        listenerPeer.on('open', () => {
+          // 3. חיוג לאולפן
+          const call = listenerPeer.call(STUDIO_PEER_ID, localStream);
+          currentCall = call;
+
+          statusDiv.innerHTML = '<span style="color: #22c55e;">🟢 אתה מחובר בלייב לאולפן! אתה בשידור.</span>';
+          hangupBtn.style.display = 'block';
+
+          call.on('close', () => {
+            resetCallUI('השיחה הסתיימה.');
+          });
         });
-      });
-    });
 
-    function loadCallRequests() {
-      const container = document.getElementById('callRequestsList');
-      const requests = JSON.parse(localStorage.getItem('call_requests') || '[]');
+        listenerPeer.on('error', (err) => {
+          console.error(err);
+          resetCallUI('❌ האולפן אינו זמין כעת.');
+        });
 
-      if (requests.length === 0 && !activeCall) {
-        container.innerHTML = '<div style="color: var(--text-dim);">אין מאזינים הממתינים על הקו...</div>';
-        return;
-      }
-
-      container.innerHTML = requests.map((req, idx) => `
-        <div class="call-item">
-          <div><strong>${req.name}</strong> <small>(${req.time})</small></div>
-          <div>
-            <button style="background: #10b981;" onclick="acceptCall('${req.id}', ${idx})">🟢 העלה לשידור</button>
-            <button style="background: #ef4444;" onclick="disconnectCall(${idx})">🔴 נתק</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function acceptCall(peerId, idx) {
-      alert("המאזין מחובר כעת בלייב! הקול שלו מושמע באולפן.");
-    }
-
-    function disconnectCall(idx) {
-      if (activeCall) { activeCall.close(); activeCall = null; }
-      let requests = JSON.parse(localStorage.getItem('call_requests') || '[]');
-      requests.splice(idx, 1);
-      localStorage.setItem('call_requests', JSON.stringify(requests));
-      loadCallRequests();
-    }
-    setInterval(loadCallRequests, 2000);
-
-    // קריין AI
-    function speakAI() {
-      const text = document.getElementById('aiText').value;
-      if (!text) return alert("הכנס טקסט לקריין");
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'he-IL';
-      window.speechSynthesis.speak(u);
-    }
-
-    // אפקטים
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const now = audioCtx.currentTime;
-      const gain = audioCtx.createGain();
-      gain.connect(audioCtx.destination);
-
-      if (type === 'applause') {
-        const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 1.5, audioCtx.sampleRate);
-        const d = buf.getChannelData(0);
-        for (let i = 0; i < buf.length; i++) d[i] = Math.random() * 2 - 1;
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buf;
-        noise.connect(gain);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
-        noise.start(now);
+      } catch (err) {
+        console.error(err);
+        statusDiv.innerHTML = '<span style="color: #ef4444;">❌ יש לאשר גישה למיקרופון בדפדפן כדי לעלות לשידור.</span>';
+        callBtn.disabled = false;
       }
     }
 
-    // הודעות
-    function loadMessages() {
-      const msgList = document.getElementById('msgList');
-      const messages = JSON.parse(localStorage.getItem('radio_messages') || '[]');
-      msgList.innerHTML = messages.map(m => `
-        <li class="msg-item"><strong>${m.name}</strong>: ${m.text}</li>
-      `).join('');
+    function endCall() {
+      if (currentCall) {
+        currentCall.close();
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      resetCallUI('ניתקת את השיחה.');
     }
-    setInterval(loadMessages, 3000);
-    loadMessages();
+
+    function resetCallUI(message) {
+      document.getElementById('status').innerHTML = `<span style="color: #94a3b8;">${message}</span>`;
+      document.getElementById('callBtn').disabled = false;
+      document.getElementById('hangupBtn').style.display = 'none';
+      currentCall = null;
+    }
   </script>
+
 </body>
 </html>
