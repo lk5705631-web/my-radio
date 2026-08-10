@@ -3,121 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>רדיו בלייב - עלה לשידור</title>
+  <title>עלה לשידור חי - Radio Studio</title>
   <!-- טעינת ספריית PeerJS -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f8fafc;
+      --subtext: #94a3b8;
+      --primary: #22c55e;
+      --primary-hover: #16a34a;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --border: #334155;
+    }
+
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
     }
-    .container {
-      background: #1e293b;
+
+    .card {
+      background: var(--card-bg);
       padding: 30px;
       border-radius: 16px;
       text-align: center;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      border: 1px solid #334155;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
     }
-    h1 { color: #60a5fa; margin-top: 0; }
-    p { color: #94a3b8; line-height: 1.5; }
-    .call-btn {
-      background: #22c55e;
+
+    h1 {
+      color: #60a5fa;
+      margin-top: 0;
+      font-size: 1.6em;
+    }
+
+    p {
+      color: var(--subtext);
+      line-height: 1.5;
+      font-size: 0.95em;
+      margin-bottom: 25px;
+    }
+
+    .btn {
       color: white;
       border: none;
-      padding: 16px 28px;
+      padding: 16px 24px;
       font-size: 1.1em;
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
       width: 100%;
-      margin-top: 15px;
       transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+      box-sizing: border-box;
     }
-    .call-btn:hover { background: #16a34a; transform: translateY(-2px); }
-    .call-btn:disabled { background: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
-    .hangup-btn {
-      background: #ef4444;
+
+    .btn-call {
+      background: var(--primary);
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+    }
+
+    .btn-call:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-call:disabled {
+      background: #475569;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-hangup {
+      background: var(--danger);
       display: none;
-      margin-top: 10px;
+      margin-top: 12px;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
     }
-    .hangup-btn:hover { background: #dc2626; }
-    #status {
+
+    .btn-hangup:hover {
+      background: var(--danger-hover);
+    }
+
+    .status-box {
       margin-top: 20px;
+      padding: 12px;
+      background: #0f172a;
+      border-radius: 8px;
       font-weight: bold;
       font-size: 0.95em;
+      min-height: 24px;
+      border: 1px solid var(--border);
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
+  <div class="card">
     <h1>📻 עלייה לשידור חי</h1>
-    <p>רוצה לדבר בשידור? לחץ על הכפתור למטה, אשר את המיקרופון ותתחבר מיד לאולפן!</p>
+    <p>רוצה לדבר בשידור? לחץ על הכפתור, אשר את המיקרופון ותתחבר ישירות לאולפן!</p>
 
-    <button id="callBtn" class="call-btn" onclick="startLiveCall()">
-      📞 לחץ כאן כדי לדבר בשידור
+    <button id="callBtn" class="btn btn-call" onclick="startCall()">
+      📞 לחץ כאן כדי להתקשר לאולפן
     </button>
 
-    <button id="hangupBtn" class="call-btn hangup-btn" onclick="endCall()">
+    <button id="hangupBtn" class="btn btn-hangup" onclick="endCall()">
       🔴 נתק שיחה
     </button>
 
-    <div id="status"></div>
+    <div id="statusBox" class="status-box">
+      <span style="color: var(--subtext);">מוכן לחיוג...</span>
+    </div>
   </div>
 
   <script>
     const STUDIO_PEER_ID = 'radio-shimon-live-studio';
     let currentCall = null;
     let localStream = null;
+    let listenerPeer = null;
 
-    async function startLiveCall() {
-      const statusDiv = document.getElementById('status');
+    async function startCall() {
+      const statusBox = document.getElementById('statusBox');
       const callBtn = document.getElementById('callBtn');
       const hangupBtn = document.getElementById('hangupBtn');
 
-      statusDiv.innerHTML = '<span style="color: #eab308;">מבקש גישה למיקרופון...</span>';
+      statusBox.innerHTML = '<span style="color: #eab308;">🎙️ מבקש גישה למיקרופון...</span>';
 
       try {
-        // 1. בקשת הרשאה למיקרופון
+        // 1. גישה למיקרופון
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
 
-        statusDiv.innerHTML = '<span style="color: #eab308;">מחייג לאולפן...</span>';
+        statusBox.innerHTML = '<span style="color: #eab308;">🌐 מתחבר לרשת ומחייג לאולפן...</span>';
         callBtn.disabled = true;
 
-        // 2. יצירת חיבור Peer למאזין
-        const listenerPeer = new Peer();
+        // 2. חיבור PeerJS הכולל שרתי STUN לעקיפת חומות אש וגלישה מ-IP שונה
+        listenerPeer = new Peer({
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+          }
+        });
 
         listenerPeer.on('open', () => {
-          // 3. חיוג לאולפן
+          // 3. ביצוע החיוג לאולפן
           const call = listenerPeer.call(STUDIO_PEER_ID, localStream);
           currentCall = call;
 
-          statusDiv.innerHTML = '<span style="color: #22c55e;">🟢 אתה מחובר בלייב לאולפן! אתה בשידור.</span>';
-          hangupBtn.style.display = 'block';
+          statusBox.innerHTML = '<span style="color: #60a5fa;">📲 מחייג... ממתין שהשדרן יענה...</span>';
 
+          // ברגע שהשדרן לוחץ "ענה לשיחה" באולפן
+          call.on('stream', () => {
+            statusBox.innerHTML = '<span style="color: #22c55e;">🟢 אתה בשידור חי! השדרן ענה לשיחה.</span>';
+            hangupBtn.style.display = 'block';
+          });
+
+          // אם השדרן מנתק/דוחה
           call.on('close', () => {
-            resetCallUI('השיחה הסתיימה.');
+            resetUI('השיחה הסתיימה על ידי האולפן.');
           });
         });
 
         listenerPeer.on('error', (err) => {
-          console.error(err);
-          resetCallUI('❌ האולפן אינו זמין כעת.');
+          console.error('PeerJS Error:', err);
+          resetUI('❌ האולפן אינו זמין כעת.');
         });
 
       } catch (err) {
-        console.error(err);
-        statusDiv.innerHTML = '<span style="color: #ef4444;">❌ יש לאשר גישה למיקרופון בדפדפן כדי לעלות לשידור.</span>';
+        console.error('Mic Error:', err);
+        statusBox.innerHTML = '<span style="color: #ef4444;">❌ יש לאשר גישה למיקרופון בדפדפן כדי לעלות לשידור.</span>';
         callBtn.disabled = false;
       }
     }
@@ -126,16 +194,28 @@
       if (currentCall) {
         currentCall.close();
       }
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
-      resetCallUI('ניתקת את השיחה.');
+      resetUI('ניתקת את השיחה.');
     }
 
-    function resetCallUI(message) {
-      document.getElementById('status').innerHTML = `<span style="color: #94a3b8;">${message}</span>`;
-      document.getElementById('callBtn').disabled = false;
-      document.getElementById('hangupBtn').style.display = 'none';
+    function resetUI(message) {
+      const statusBox = document.getElementById('statusBox');
+      const callBtn = document.getElementById('callBtn');
+      const hangupBtn = document.getElementById('hangupBtn');
+
+      statusBox.innerHTML = `<span style="color: var(--subtext);">${message}</span>`;
+      callBtn.disabled = false;
+      hangupBtn.style.display = 'none';
+
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+
+      if (listenerPeer) {
+        listenerPeer.destroy();
+        listenerPeer = null;
+      }
+
       currentCall = null;
     }
   </script>
